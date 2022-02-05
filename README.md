@@ -24,20 +24,7 @@ An attacker with less than Y parts won't be able to recover, or even guess the s
 guix package -i px-secret-sharing steghide
 ```
 
-## Usage Notes
-
-This application is designed to help you easily generate secret shares and optionally keep track of the fact that you have, how many pieces there are, and on what medium they are stored. It should be run on an air-grapped computer.
-
-One could argue that it would make it easier for an intruder to find your keys, if you literally leave a note on your computer that you have X keys, and that they are stored on medium A, B, C (microSD, USB Stick, Mobile Phone, ...). However, I believe:
-
-1. It will encourage you to put more thought into where (or with whom) to keep the pieces
-2. It has no impact on the security of the key itself
-3. It hopefully lowers the barrier of entry
-4. It might give yourself a hint what to look for, if you forget
-
-Let's assume you have 8 pieces of which you need 5. Fast-forward one, two, or three years, you might start to forget where these pieces are, or lose some, without realizing.
-
-Lastly: Consider that you might suffer a sudden loss of memory due to an accident or other reasons, and find youself unable to even remember your name. In this case it might be good, if the pieces are distributed among a set of trusted people that ideally don't know each other.
+## Usage
 
 ```bash
 usage: px-secret-sharing [-h]
@@ -51,7 +38,16 @@ usage: px-secret-sharing [-h]
 	[-sum SUMMARY]
 ```
 
-### Create
+There's two primary options:
+
+1. Create
+2. Reconstruct
+   - From Summary: Load `summary.json` to collect pieces automatically
+   - From Prompt: You will be prompted for the location of each pieces
+
+Reconstruction from prompt is usually the most reliable. The application will prompt you for the path of each secret, and you may switch drives between prompts (unplug SD card; plugin another).
+
+### 1. Create
 
 With defaults:
 
@@ -98,11 +94,11 @@ secret_1/  secret_2/  secret_3/  secret_4/  secret_5/  summary.json
 
 **You should move each `secret_1,2,3,4,5` to a seperate, secure storage and ideally `~.local/share/px-secrets-share/px-secrets-share` afterwards.** Depending on whether you selected images or textfiles, the folders contains either a `note.txt` or `picture_*.jpg`.
 
-### Reconstruct
+### 2. Reconstruct
 
 #### From Summary
 
-```
+```bash
 $ px-secret-sharing -o RECONSTRUCT -sum /home/franz/.local/share/px-secrets-share/summary.json
 Welcome to PantherX Secret Sharing v0.0.0
 
@@ -141,7 +137,7 @@ OziWiJ05XyQ29ErIt18Od4A4KR7fXBotmOKyhxRFZP/yomGbsp17MXRv61Dl4x83
 =L7Us
 ```
 
-#### Manually (Prompts)
+#### From Prompt
 
 ```bash
 $ px-secret-sharing -o RECONSTRUCT
@@ -224,6 +220,21 @@ OziWiJ05XyQ29ErIt18Od4A4KR7fXBotmOKyhxRFZP/yomGbsp17MXRv61Dl4x83
 5T9kmFe5D8nuxQ==
 =L7Us
 ```
+
+## Usage Notes
+
+This application is designed to help you easily generate secret shares and optionally keep track of the fact that you have, how many pieces there are, and on what medium they are stored. It should be run on an air-grapped computer.
+
+One could argue that it would make it easier for an intruder to find your keys, if you literally leave a note on your computer that you have X keys, and that they are stored on medium A, B, C (microSD, USB Stick, Mobile Phone, ...). However, I believe:
+
+1. It will encourage you to put more thought into where (or with whom) to keep the pieces
+2. It has no impact on the security of the key itself
+3. It hopefully lowers the barrier of entry
+4. It might give yourself a hint what to look for, if you forget
+
+Let's assume you have 8 pieces of which you need 5. Fast-forward one, two, or three years, you might start to forget where these pieces are, or lose some, without realizing.
+
+Lastly: Consider that you might suffer a sudden loss of memory due to an accident or other reasons, and find youself unable to even remember your name. In this case it might be good, if the pieces are distributed among a set of trusted people that ideally don't know each other.
 
 ## Development
 
