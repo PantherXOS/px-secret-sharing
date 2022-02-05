@@ -4,7 +4,9 @@ from . import tss
 
 
 def create_shamir_secret_shares(user_secret: str, user_secret_identifier: str, pieces_minimum: int, pieces_total: int):
-    print('=> Genering shamir secret shares scheme')
+    print('=> Splitting secret into {} pieces (Shamir Secret Shares Scheme)'.format(
+        pieces_total
+    ))
     return tss.share_secret(
         pieces_minimum,
         pieces_total,
@@ -15,7 +17,9 @@ def create_shamir_secret_shares(user_secret: str, user_secret_identifier: str, p
 
 
 def reconstruct_shamir_secret_shares(shares: List[bytes]):
-    print('=> Reconstructing shamir secret shares scheme')
+    print('=> Reconstructing from {} pieces (Shamir Secret Shares Scheme)'.format(
+        len(shares)
+    ))
     try:
         secret = tss.reconstruct_secret(shares)
         return secret.decode()

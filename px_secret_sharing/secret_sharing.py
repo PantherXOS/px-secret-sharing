@@ -52,7 +52,7 @@ class SecretSharing:
     def __init__(self, working_directory: str):
         self.working_directory = working_directory
 
-    def create(self, secret: Secret, user_secret: str, use_images: bool, summary_dir: Union[str, None]):
+    def create(self, secret: Secret, user_secret: str, use_images: bool, summary_dir: Union[str, None]) -> List[Piece]:
         '''
         Create a new secret share
         '''
@@ -63,7 +63,7 @@ class SecretSharing:
 
         shares = secret.create(user_secret)
 
-        pieces = []
+        pieces: List[Piece] = []
 
         for index, share in enumerate(shares, start=1):
             directory = "{}/secret_{}".format(self.working_directory, index)

@@ -2,12 +2,9 @@ from typing import Union
 
 import pkg_resources
 
-from px_secret_sharing.config import WORKING_DIRECTORY
+from px_secret_sharing.classes import RuntimeConfig
+from px_secret_sharing.cli import get_cl_arguments
 from px_secret_sharing.summary import load_pieces_summary
-from px_secret_sharing.util import (user_prompt_create_or_reconstruct,
-                                    user_prompt_file,
-                                    user_prompt_load_summary_or_prompt,
-                                    user_prompt_path)
 
 from .files import read_file
 from .secret_sharing import Secret, SecretSharing
@@ -15,92 +12,64 @@ from .secret_sharing import Secret, SecretSharing
 version = pkg_resources.require("px_secret_sharing")[0].version
 
 
-def main(test_config: Union[dict, None] = None):
-    print('Welcome to PantherX Device Identity Service v{}'.format(version))
+def main(test_config: Union[RuntimeConfig, None] = None):
+    print('Welcome to PantherX Secret Sharing v{}'.format(version))
 
-    working_directory = WORKING_DIRECTORY
+    config = None
     if test_config:
-        working_directory = test_config['working_directory']
+        config = test_config
+    else:
+        config = get_cl_arguments()
 
     print('''
 Working directory: {}
-    '''.format(working_directory))
+    '''.format(config.working_directory))
 
-    method = None
-    if test_config:
-        method = test_config['method']
-    else:
-        method = user_prompt_create_or_reconstruct()
+    if config.operation == 'create':
 
-    if method == 'create':
-
-        secret_sharing = SecretSharing(working_directory)
-        if test_config:
-            secret = Secret(
-                minimum=test_config['min'],
-                total=test_config['total'],
-                identifier=test_config['identifier']
-            )
-            secret_sharing.create(
-                secret=secret,
-                user_secret=test_config['user_secret'],
-                use_images=test_config['use_images'],
-                summary_dir=test_config['working_directory']
-            )
+        user_secret = None
+        if config.user_secret:
+            user_secret = config.user_secret
+        elif config.user_secret_file_path:
+            user_secret = read_file(config.user_secret_file_path)
         else:
-            print('''
-Enter the full path under which to find the secret or key that you would like to split.
-Ex. /home/franz/tomb_test/secret.tomb.key
-            ''')
-            path = user_prompt_file()
-            user_secret = read_file(path)
+            raise EnvironmentError('Cannot proceed without user secret.')
 
-            print('''
-These values are currently hard-coded:
-- minimum: 3
-- total: 5
-- identifier: test
-- use images: True
-            ''')
+        secret_sharing = SecretSharing(config.working_directory)
 
-            secret = Secret(
-                minimum=3,
-                total=5,
-                identifier='test'
-            )
-            secret_sharing.create(
-                secret=secret,
-                user_secret=user_secret,
-                use_images=True,
-                summary_dir=working_directory
-            )
+        secret = Secret(
+            minimum=config.minimum_pieces,
+            total=config.total_pieces,
+            identifier=config.identifier
+        )
+        pieces = secret_sharing.create(
+            secret=secret,
+            user_secret=user_secret,
+            use_images=config.use_images,
+            summary_dir=config.working_directory
+        )
 
-    else:
-        reconstruction_method = None
-        if test_config:
-            reconstruction_method = test_config['reconstruction_method']
-        else:
-            reconstruction_method = user_prompt_load_summary_or_prompt()
+        print('''
+Now that your secret has been split in {} pieces, you should:
+1. Distribute these pieces across various places
+2. Delete each secret after it has been relocated
+3. Optionally, delete the whole folder {}
 
-        if reconstruction_method == 'prompt':
-            secret_sharing = SecretSharing(working_directory)
-            secret = secret_sharing.reconstruct(None)
+Make sure that two secrets are never on the same device, or same physical location
+        '''.format(len(pieces), config.working_directory))
+
+    elif config.operation == 'reconstruct':
+        if config.summary_file_path:
+            summary = load_pieces_summary(config.summary_file_path)
+            secret_sharing = SecretSharing(config.working_directory)
+            secret = secret_sharing.reconstruct(summary)
+
             print('RECONSTRUCTED SECRET')
             print(secret)
-        else:
-            print('''
-Enter the path from which to load the summary (summary.json).
-for ex. {}
-            '''.format(WORKING_DIRECTORY))
-            path = None
-            if test_config:
-                path = test_config['working_directory']
-            else:
-                path = user_prompt_path()
-            summary = load_pieces_summary(path)
 
-            secret_sharing = SecretSharing(working_directory)
-            secret = secret_sharing.reconstruct(summary)
+        else:
+            secret_sharing = SecretSharing(config.working_directory)
+            secret = secret_sharing.reconstruct(None)
 
             print('RECONSTRUCTED SECRET')
             print(secret)

@@ -34,10 +34,9 @@ def assemble_summary_from_user_input():
                 return pieces
 
 
-def load_pieces_summary(directory: str) -> List[Piece]:
-    path = "{}/summary.json".format(directory)
-    print('=> Loading summary from {}'.format(path))
-    summary_content = read_file(path)
+def load_pieces_summary(summary_file_path: str) -> List[Piece]:
+    print('=> Loading summary from {}'.format(summary_file_path))
+    summary_content = read_file(summary_file_path)
     summary = json.loads(summary_content)
 
     pieces = []

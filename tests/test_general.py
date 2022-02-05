@@ -1,4 +1,5 @@
 import os
+from px_secret_sharing.classes import RuntimeConfig
 import shutil
 import unittest
 
@@ -40,36 +41,43 @@ class TestGeneral(unittest.TestCase):
 
     def test_main_create(self):
         # (1) Create secret
-        main({
-            'working_directory': file_dir,
-            'method': 'create',
-            'user_secret': user_secret,
-            'use_images': False,
-            'summary_path': file_dir,
-            'min': 3,
-            'total': 5,
-            'identifier': 'test'
-
-        })
+        main(RuntimeConfig(
+            operation='create',
+            working_directory=file_dir,
+            minimum_pieces=3,
+            total_pieces=5,
+            identifier='test',
+            use_images=False,
+            user_secret=user_secret,
+            user_secret_file_path=None,
+            summary_file_path=None
+        ))
 
     def test_main_reconstruct(self):
         # (1) Create secret
-        main({
-            'working_directory': file_dir,
-            'method': 'create',
-            'user_secret': user_secret,
-            'use_images': False,
-            'summary_path': file_dir,
-            'min': 3,
-            'total': 5,
-            'identifier': 'test'
+        main(RuntimeConfig(
+            operation='create',
+            working_directory=file_dir,
+            minimum_pieces=3,
+            total_pieces=5,
+            identifier='test',
+            use_images=False,
+            user_secret=user_secret,
+            user_secret_file_path=None,
+            summary_file_path=None
+        ))
 
-        })
-        main({
-            'working_directory': file_dir,
-            'method': 'reconstruct',
-            'reconstruction_method': 'summary'
-        })
+        main(RuntimeConfig(
+            operation='reconstruct',
+            working_directory=file_dir,
+            minimum_pieces=3,
+            total_pieces=5,
+            identifier='test',
+            use_images=False,
+            user_secret=user_secret,
+            user_secret_file_path=None,
+            summary_file_path='{}/summary.json'.format(file_dir)
+        ))
 
     def test_with_textfiles(self):
         # (1) Create secret
@@ -110,7 +118,7 @@ class TestGeneral(unittest.TestCase):
             self.assertTrue(exists)
 
         # (2) Recover secret
-        summary = load_pieces_summary(file_dir)
+        summary = load_pieces_summary('{}/summary.json'.format(file_dir))
         recovered_secret = secret_sharing.reconstruct(summary)
         self.assertEqual(user_secret, recovered_secret)
 

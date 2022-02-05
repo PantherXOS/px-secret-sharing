@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Union
 
 
 @dataclass
@@ -34,3 +35,16 @@ class Piece:
             os.unlink(self.get_piece_path())
         else:
             print("File {} already deleted.".format(self.get_piece_path()))
+
+
+@dataclass
+class RuntimeConfig:
+    operation: str
+    working_directory: str
+    minimum_pieces: int
+    total_pieces: int
+    identifier: str
+    use_images: bool
+    user_secret: Union[str, None]
+    user_secret_file_path: Union[str, None]
+    summary_file_path: Union[str, None]
