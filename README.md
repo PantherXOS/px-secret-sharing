@@ -263,3 +263,5 @@ Ran 5 tests in 22.059s
 ## Credits
 
 This application relies on the MIT-licensed, `tss` library by Sebastien Martini (seb@dbzteam.org). The code is embedded under `px_secret_sharing/tss.py`.
+
+The source code can be found on [github.com/seb-m/tss](https://github.com/seb-m/tss)
