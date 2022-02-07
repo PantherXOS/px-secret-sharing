@@ -4,7 +4,9 @@ import px_secret_sharing
 
 
 def main():
-    px_secret_sharing.main()
+    res = px_secret_sharing.main()
+    if res:
+        print(res)
     stdout.flush()
 
 

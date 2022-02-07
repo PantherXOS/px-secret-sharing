@@ -1,4 +1,5 @@
 import os
+from px_secret_sharing.util import prompt_user_for_directory, user_prompt, user_prompt_path
 import random
 from typing import List, Union
 
@@ -11,7 +12,7 @@ from px_secret_sharing.steghide import (extract_steghide_image,
 from .pieces import write_piece
 from .shamir import (create_shamir_secret_shares,
                      reconstruct_shamir_secret_shares)
-from .summary import assemble_summary_from_user_input, write_pieces_summary
+from .summary import write_pieces_summary
 
 
 class Secret:
@@ -52,7 +53,7 @@ class SecretSharing:
     def __init__(self, working_directory: str):
         self.working_directory = working_directory
 
-    def create(self, secret: Secret, user_secret: str, use_images: bool, summary_dir: Union[str, None]) -> List[Piece]:
+    def create(self, secret: Secret, user_secret: str, use_images: bool, image_count: int, summary_dir: Union[str, None], prompt_for_each_location: bool = False) -> List[Piece]:
         '''
         Create a new secret share
         '''
@@ -66,7 +67,18 @@ class SecretSharing:
         pieces: List[Piece] = []
 
         for index, share in enumerate(shares, start=1):
-            directory = "{}/secret_{}".format(self.working_directory, index)
+            directory = None
+            if prompt_for_each_location:
+                print('''
+Enter the desired path for this piece {}/{}.
+The files will be written immideately, so you can change the microSD if necessary.
+Ex. /media/secrets
+                '''.format(index, len(shares)))
+                directory = user_prompt_path()
+            else:
+                directory = "{}/secret_{}".format(
+                    self.working_directory, index
+                )
 
             piece = Piece(
                 index,
@@ -101,49 +113,81 @@ class SecretSharing:
 
         return pieces
 
+    def _reconstruct_share(self, piece: Piece) -> Union[bytes, None]:
+        print('=> Looking for piece #{} in {}'.format(
+            piece.identifier, piece.directory
+        ))
+
+        if piece.is_image:
+            images = list_files_by_extention(piece.directory, '.jpg')
+            images_filtered = filter_images_with_steghide_data(images)
+            if len(images_filtered) > 0:
+                extract_steghide_image(
+                    images_filtered[0], piece.get_piece_path(), '')
+            else:
+                raise EnvironmentError(
+                    'Could not find image with steghide data in {}.'.format(piece.directory))
+
+        if not os.path.isfile(piece.get_piece_path()):
+            raise EnvironmentError(
+                'Could not find piece data in {}.'.format(
+                    piece.get_piece_path())
+            )
+
+        share = read_file(piece.get_piece_path(), bytes)
+        return share
+
+    def _reconstruct_from_user_input(self, use_images: bool):
+        pieces = []
+        shares = []
+
+        for number in range(1, 99, 1):
+            path = prompt_user_for_directory()
+
+            piece = Piece(
+                number,
+                path,
+                'note.txt',
+                use_images
+            )
+            pieces.append(piece)
+
+            share = self._reconstruct_share(piece)
+            if share:
+                shares.append(share)
+            else:
+                print('Piece is invalid or missing: {}'.format(piece.directory))
+
+            if number > 1:
+                print('''
+We have {} pieces now. Look for more?
+                '''.format(len(shares)))
+                get_more = user_prompt('Get more piece(s)?')
+                if not get_more:
+                    return shares, pieces
+
     def _reconstruct_from_summary(self, summary: List[Piece]) -> List[bytes]:
         shares = []
         piece_count = len(summary)
 
         print('=> Looking for {} pieces ...'.format(piece_count))
 
-        for index, piece in enumerate(summary, start=1):
-            print('=> Looking for piece #{} in {}'.format(
-                piece.identifier, piece.directory
-            ))
-
-            if piece.is_image:
-                images = list_files_by_extention(piece.directory, '.jpg')
-                images_filtered = filter_images_with_steghide_data(images)
-                if len(images_filtered) > 0:
-                    extract_steghide_image(
-                        images_filtered[0], piece.get_piece_path(), '')
-                else:
-                    raise EnvironmentError(
-                        'Could not find image with steghide data in {}.'.format(piece.directory))
-
-            if not os.path.isfile(piece.get_piece_path()):
-                raise EnvironmentError(
-                    'Could not find piece data in {}.'.format(
-                        piece.get_piece_path())
-                )
-
-            share = read_file(piece.get_piece_path(), bytes)
-            shares.append(share)
+        for piece in summary:
+            share = self._reconstruct_share(piece)
+            if share:
+                shares.append(share)
+            else:
+                print('Piece is invalid or missing: {}'.format(piece.directory))
 
         return shares
 
-    def reconstruct(self, summary: Union[List[Piece], None]):
+    def reconstruct(self, summary: Union[List[Piece], None], use_images: bool):
         print('=> Reconstructing an existing secret share')
+        shares = None
         if summary:
             shares = self._reconstruct_from_summary(summary)
-            return reconstruct_shamir_secret_shares(shares)
         else:
             print('No summary selected. Continuing manually.')
-            result = assemble_summary_from_user_input()
-            if result:
-                shares = self._reconstruct_from_summary(result)
-                return reconstruct_shamir_secret_shares(shares)
-            else:
-                print('Did not receive any valid paramters. Cannot continue')
-                return None
+            shares, pieces = self._reconstruct_from_user_input(use_images)
+
+        return reconstruct_shamir_secret_shares(shares)

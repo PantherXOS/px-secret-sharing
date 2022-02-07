@@ -16,6 +16,9 @@ def assemble_summary_from_user_input():
     for number in range(99):
         path = prompt_user_for_directory()
 
+        if not path:
+            raise ValueError('Need path to proceed.')
+
         piece = Piece(
             number,
             path,

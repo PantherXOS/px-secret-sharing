@@ -28,12 +28,13 @@ guix package -i px-secret-sharing steghide
 
 ```bash
 usage: px-secret-sharing [-h]
-	-o {CREATE,RECONSTRUCT}
+	-o {create, create:prompt, reconstruct}
 	[-wd WORKING_DIRECTORY]
 	[-min MINIMUM]
 	[-total TOTAL]
 	[-id IDENTIFIER]
 	[-img IMAGES]
+	[-imgc IMAGE_COUNT]
 	[-s SECRET]
 	[-sum SUMMARY]
 ```
@@ -41,6 +42,8 @@ usage: px-secret-sharing [-h]
 There's two primary options:
 
 1. Create
+   - `create`: To create a new share and save all pieces to the working directory
+   - `create:prompt`: Create a new share but provide location of pieces one by one
 2. Reconstruct
    - From Summary: Load `summary.json` to collect pieces automatically
    - From Prompt: You will be prompted for the location of each pieces
@@ -52,7 +55,10 @@ Reconstruction from prompt is usually the most reliable. The application will pr
 With defaults:
 
 ```bash
-px-secret-sharing -o CREATE --secret /home/franz/tomb_test/secret.tomb.key
+px-secret-sharing -o create --secret /home/franz/tomb_test/secret.tomb.key
+
+# To get prrompted for each location:
+px-secret-sharing -o create:prompt --secret /home/franz/tomb_test/secret.tomb.key
 ```
 
 With defaults but embed pieces to images instead of .txt files. The images will be downloaded from `unsplash.it`.:
@@ -64,7 +70,7 @@ px-secret-sharing -o CREATE -img True --secret /home/franz/tomb_test/secret.tomb
 All options:
 
 ```bash
-px-secret-sharing -o CREATE
+px-secret-sharing -o [create,create:prompt]
 ```
 
 **Example**

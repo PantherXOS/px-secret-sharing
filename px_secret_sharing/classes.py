@@ -45,6 +45,7 @@ class RuntimeConfig:
     total_pieces: int
     identifier: str
     use_images: bool
+    image_count: int
     user_secret: Union[str, None]
     user_secret_file_path: Union[str, None]
     summary_file_path: Union[str, None]

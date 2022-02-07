@@ -98,7 +98,7 @@ def _prompt_user_for_directory():
     return path
 
 
-def _retry_prompt_user_for_directory(overwrite_path: Union[str, None]):
+def _retry_prompt_user_for_directory(overwrite_path: Union[str, None]) -> str:
     print('''
     Would you like to retry? Enter 'yes' to retry; anything else to abort.
     ''')
@@ -109,7 +109,7 @@ def _retry_prompt_user_for_directory(overwrite_path: Union[str, None]):
         raise UserAbortException()
 
 
-def prompt_user_for_directory(overwrite_path: Union[str, None] = None):
+def prompt_user_for_directory(overwrite_path: Union[str, None] = None) -> str:
     path = None
     if overwrite_path:
         path = overwrite_path
@@ -122,7 +122,7 @@ def prompt_user_for_directory(overwrite_path: Union[str, None] = None):
             return _retry_prompt_user_for_directory(overwrite_path)
 
         note_path = "{}/note.txt".format(path)
-        if os.path.isfile(note_path):
+        if path and os.path.isfile(note_path):
             print('Given path is correct. Found secret: {}'.format(note_path))
             return path
         else:
@@ -130,7 +130,7 @@ def prompt_user_for_directory(overwrite_path: Union[str, None] = None):
             images = list_files_by_extention(path, '.jpg')
             if len(images) > 0:
                 images_filtered = filter_images_with_steghide_data(images)
-                if len(images_filtered) > 0:
+                if path and len(images_filtered) > 0:
                     return path
                 else:
                     print('Found {} images but none contain any related data.'.format(

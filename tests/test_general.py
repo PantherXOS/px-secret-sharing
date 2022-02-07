@@ -48,6 +48,7 @@ class TestGeneral(unittest.TestCase):
             total_pieces=5,
             identifier='test',
             use_images=False,
+            image_count=0,
             user_secret=user_secret,
             user_secret_file_path=None,
             summary_file_path=None
@@ -62,6 +63,7 @@ class TestGeneral(unittest.TestCase):
             total_pieces=5,
             identifier='test',
             use_images=False,
+            image_count=0,
             user_secret=user_secret,
             user_secret_file_path=None,
             summary_file_path=None
@@ -74,6 +76,7 @@ class TestGeneral(unittest.TestCase):
             total_pieces=5,
             identifier='test',
             use_images=False,
+            image_count=0,
             user_secret=user_secret,
             user_secret_file_path=None,
             summary_file_path='{}/summary.json'.format(file_dir)
@@ -88,6 +91,7 @@ class TestGeneral(unittest.TestCase):
             secret,
             user_secret,
             False,
+            0,
             None
         )
 
@@ -97,7 +101,7 @@ class TestGeneral(unittest.TestCase):
             self.assertTrue(exists)
 
         # (2) Recover secret
-        recovered_secret = secret_sharing.reconstruct(pieces)
+        recovered_secret = secret_sharing.reconstruct(pieces, False)
         self.assertEqual(user_secret, recovered_secret)
 
     def test_with_textfiles_load_summary(self):
@@ -109,6 +113,7 @@ class TestGeneral(unittest.TestCase):
             secret,
             user_secret,
             False,
+            0,
             file_dir
         )
 
@@ -119,7 +124,7 @@ class TestGeneral(unittest.TestCase):
 
         # (2) Recover secret
         summary = load_pieces_summary('{}/summary.json'.format(file_dir))
-        recovered_secret = secret_sharing.reconstruct(summary)
+        recovered_secret = secret_sharing.reconstruct(summary, False)
         self.assertEqual(user_secret, recovered_secret)
 
     def test_with_images(self):
@@ -131,6 +136,7 @@ class TestGeneral(unittest.TestCase):
             secret,
             user_secret,
             True,
+            1,
             None
         )
 
@@ -144,7 +150,7 @@ class TestGeneral(unittest.TestCase):
             self.assertEqual(len(images_filtered), 1)
 
         # (2) Recover secret
-        recovered_secret = secret_sharing.reconstruct(pieces)
+        recovered_secret = secret_sharing.reconstruct(pieces, True)
         self.assertEqual(user_secret, recovered_secret)
 
     # def test_manual(self):
