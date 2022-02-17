@@ -39,6 +39,21 @@ class Piece:
 
 @dataclass
 class RuntimeConfig:
+    '''
+    Runtime config
+
+    operation: create, create:prompt, reconstruct
+    working_directory: temporary "cache"
+    minimum_pieces: minimum pieces to recover
+    total_pieces: total of pieces
+    identifier: identifies the pieces (if you have multiple sets of secrets)
+    use_images: embed / restore piece from image
+    image_count: number of random images to download
+    user_secret:
+    user_secret_file_path:
+    summary_file_path:
+
+    '''
     operation: str
     working_directory: str
     minimum_pieces: int

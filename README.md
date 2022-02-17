@@ -1,7 +1,5 @@
 # PantherX Secret Sharing
 
-**This is an early preview (pre-v0.0.1).**
-
 The idea behind this is fairly simply.
 
 Let's assume you've setup a secret store like [here](https://wiki.pantherx.org/tomb/#usage). The next challenge would be to securely and redundantly store the key file. This is where `px-secret-sharing` comes in:
@@ -10,6 +8,26 @@ Let's assume you've setup a secret store like [here](https://wiki.pantherx.org/t
 2. Optionally, for each split, we download a number of random images and embed the part in one
 
 Now you can distribute the X parts.
+
+```mermaid
+graph TD
+    EK[Encryption key] --- SP(Split / Reconstruct)
+    SP --> P1[Piece 1]
+    SP --> P2[Piece 2]
+    SP --> P3[Piece 3]
+    SP --> P4[Piece 4]
+    SP --> P5[Piece 5]
+
+    P1 -.-|restore|SP
+    P2 -.-|restore|SP
+    P5 -.-|restore|SP
+
+    P1 ---|offline| USB1
+    P2 ---|offline| Friends1
+    P3 ---|offline| Friends2
+    P4 ---|offline| Family1
+    P5 ---|offline| Family2
+```
 
 Recovery works similiarly:
 
@@ -30,13 +48,13 @@ guix package -i px-secret-sharing steghide
 usage: px-secret-sharing [-h]
 	-o {create, create:prompt, reconstruct}
 	[-wd WORKING_DIRECTORY]
-	[-min MINIMUM]
-	[-total TOTAL]
-	[-id IDENTIFIER]
-	[-img IMAGES]
-	[-imgc IMAGE_COUNT]
-	[-s SECRET]
-	[-sum SUMMARY]
+	[-min MINIMUM] # (create) minimum pieces required to recover
+	[-total TOTAL] # (create) total number of pieces
+	[-id IDENTIFIER] # an identifier in case you have multiple sets
+	[-img IMAGES] # (create/reconstruct) whether to conceal the key in images (create) or load from images (reconstruct)
+	[-imgc IMAGE_COUNT] # (create) how many random images to download per piece (min 1 for the piece itself)
+	[-s SECRET] # (create/reconstruct) the file the secret should be read from (create) or written to (reconstruct)
+	[-sum SUMMARY] # (reconstruct) the file that contains the summary of an existing share
 ```
 
 There's two primary options:
@@ -45,7 +63,7 @@ There's two primary options:
    - `create`: To create a new share and save all pieces to the working directory
    - `create:prompt`: Create a new share but provide location of pieces one by one
 2. Reconstruct
-   - From Summary: Load `summary.json` to collect pieces automatically
+   - From Summary: Load `summary.json` to collect pieces automatically (`-sum ../summary.json`)
    - From Prompt: You will be prompted for the location of each pieces
 
 Reconstruction from prompt is usually the most reliable. The application will prompt you for the path of each secret, and you may switch drives between prompts (unplug SD card; plugin another).
@@ -64,7 +82,7 @@ px-secret-sharing -o create:prompt --secret /home/franz/tomb_test/secret.tomb.ke
 With defaults but embed pieces to images instead of .txt files. The images will be downloaded from `unsplash.it`.:
 
 ```bash
-px-secret-sharing -o CREATE -img True --secret /home/franz/tomb_test/secret.tomb.key
+px-secret-sharing -o create -img True --secret /home/franz/tomb_test/secret.tomb.key
 ```
 
 All options:
@@ -76,7 +94,7 @@ px-secret-sharing -o [create,create:prompt]
 **Example**
 
 ```bash
-$ px-secret-sharing -o CREATE --secret /home/franz/tomb_test/secret.tomb.key
+$ px-secret-sharing -o create --secret /home/franz/tomb_test/secret.tomb.key
 Welcome to PantherX Secret Sharing v0.0.0
 
 Working directory: /home/franz/.local/share/px-secrets-share
@@ -245,6 +263,7 @@ Lastly: Consider that you might suffer a sudden loss of memory due to an acciden
 ## Development
 
 ```bash
+git clone https://git.pantherx.org/development/applications/px-secret-sharing.git && cd px-secret-sharing
 guix environment --pure --ad-hoc python steghide wget
 python3 -m venv venv
 source venv/bin/activate

@@ -36,7 +36,7 @@ you time to switch between (for ex.) different microSD cards.
                         help="CREATE only; Total number of pieces to generate. Defaults to: 5"
                         )
     parser.add_argument("-id", "--identifier", type=str, default='note',
-                        help="CREATE only; A identifier for this secret. This is only important if you have 2 or more shared secrets."
+                        help="A identifier for this secret. This is only important if you have 2 or more shared secrets. Default: note."
                         )
     parser.add_argument("-img", "--images", type=bool, default=False,
                         help="CREATE only; Whether to conceal the pieces (shares) in images."

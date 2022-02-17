@@ -50,8 +50,11 @@ class Secret:
 class SecretSharing:
     working_directory: str
 
-    def __init__(self, working_directory: str):
+    identifier: Union[str, None]
+
+    def __init__(self, working_directory: str, identifier: Union[str, None]):
         self.working_directory = working_directory
+        self.identifier = identifier
 
     def create(self, secret: Secret, user_secret: str, use_images: bool, image_count: int, summary_dir: Union[str, None], prompt_for_each_location: bool = False) -> List[Piece]:
         '''
@@ -114,19 +117,43 @@ Ex. /media/secrets
         return pieces
 
     def _reconstruct_share(self, piece: Piece) -> Union[bytes, None]:
-        print('=> Looking for piece #{} in {}'.format(
-            piece.identifier, piece.directory
+        print('=> Looking for piece {} ({}) in {}'.format(
+            0, piece.identifier, piece.directory
         ))
 
         if piece.is_image:
             images = list_files_by_extention(piece.directory, '.jpg')
             images_filtered = filter_images_with_steghide_data(images)
+
             if len(images_filtered) > 0:
-                extract_steghide_image(
-                    images_filtered[0], piece.get_piece_path(), '')
+                found_match = False
+                loop = True
+                current = 0
+
+                while loop and not found_match:
+                    extract_steghide_image(
+                        images_filtered[current], piece.get_piece_path(), ''
+                    )
+                    test_share = read_file(piece.get_piece_path(), bytes)
+                    if self.identifier:
+                        if test_share.startswith(self.identifier.encode()):
+                            found_match = True
+
+                    current += 1
+                    if len(images_filtered) < current:
+                        loop = False
+
+                if not found_match:
+                    raise EnvironmentError(
+                        'Found images with steghide data but could not match identifier: {}.'.format(
+                            piece.directory)
+                    )
+
             else:
                 raise EnvironmentError(
-                    'Could not find image with steghide data in {}.'.format(piece.directory))
+                    'Could not find image with steghide data in {}.'.format(
+                        piece.directory)
+                )
 
         if not os.path.isfile(piece.get_piece_path()):
             raise EnvironmentError(
@@ -134,8 +161,7 @@ Ex. /media/secrets
                     piece.get_piece_path())
             )
 
-        share = read_file(piece.get_piece_path(), bytes)
-        return share
+        return read_file(piece.get_piece_path(), bytes)
 
     def _reconstruct_from_user_input(self, use_images: bool):
         pieces = []
@@ -150,10 +176,10 @@ Ex. /media/secrets
                 'note.txt',
                 use_images
             )
-            pieces.append(piece)
 
             share = self._reconstruct_share(piece)
             if share:
+                pieces.append(piece)
                 shares.append(share)
             else:
                 print('Piece is invalid or missing: {}'.format(piece.directory))
@@ -188,6 +214,11 @@ We have {} pieces now. Look for more?
             shares = self._reconstruct_from_summary(summary)
         else:
             print('No summary selected. Continuing manually.')
-            shares, pieces = self._reconstruct_from_user_input(use_images)
+            result = self._reconstruct_from_user_input(use_images)
+            if result:
+                shares, pieces = result
 
-        return reconstruct_shamir_secret_shares(shares)
+        if shares:
+            return reconstruct_shamir_secret_shares(shares)
+        else:
+            return None

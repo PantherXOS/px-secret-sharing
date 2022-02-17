@@ -35,7 +35,9 @@ Working directory: {}
         else:
             raise EnvironmentError('Cannot proceed without user secret.')
 
-        secret_sharing = SecretSharing(config.working_directory)
+        secret_sharing = SecretSharing(
+            config.working_directory, config.identifier
+        )
 
         secret = Secret(
             minimum=config.minimum_pieces,
@@ -67,11 +69,13 @@ Make sure that two secrets are never on the same device, or same physical locati
         secret = None
         if config.summary_file_path:
             summary = load_pieces_summary(config.summary_file_path)
-            secret_sharing = SecretSharing(config.working_directory)
+            secret_sharing = SecretSharing(
+                config.working_directory, config.identifier)
             secret = secret_sharing.reconstruct(summary, config.use_images)
 
         else:
-            secret_sharing = SecretSharing(config.working_directory)
+            secret_sharing = SecretSharing(
+                config.working_directory, config.identifier)
             secret = secret_sharing.reconstruct(None, config.use_images)
 
         if secret and config.user_secret_file_path:

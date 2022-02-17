@@ -10,7 +10,7 @@ AUTHOR_EMAIL = 'franz@pantherx.org'
 URL = 'https://git.pantherx.org/development/applications/px-secret-sharing'
 
 LICENSE = 'MIT'
-DESCRIPTION = 'Initiates device; provides JWK, JWKS and Signing Services'
+DESCRIPTION = 'Split a secret to, or recover from a partial number of pieces.'
 LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 

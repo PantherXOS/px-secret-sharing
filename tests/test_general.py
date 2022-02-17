@@ -84,7 +84,7 @@ class TestGeneral(unittest.TestCase):
 
     def test_with_textfiles(self):
         # (1) Create secret
-        secret_sharing = SecretSharing(file_dir)
+        secret_sharing = SecretSharing(file_dir, 'test')
         secret = Secret(5, 8, 'test')
 
         pieces = secret_sharing.create(
@@ -106,7 +106,7 @@ class TestGeneral(unittest.TestCase):
 
     def test_with_textfiles_load_summary(self):
         # (1) Create secret
-        secret_sharing = SecretSharing(file_dir)
+        secret_sharing = SecretSharing(file_dir, 'test')
         secret = Secret(5, 8, 'test')
 
         pieces = secret_sharing.create(
@@ -129,7 +129,7 @@ class TestGeneral(unittest.TestCase):
 
     def test_with_images(self):
         # (1) Create secret
-        secret_sharing = SecretSharing(file_dir)
+        secret_sharing = SecretSharing(file_dir, 'test')
         secret = Secret(2, 3, 'test')
 
         pieces = secret_sharing.create(
@@ -153,46 +153,50 @@ class TestGeneral(unittest.TestCase):
         recovered_secret = secret_sharing.reconstruct(pieces, True)
         self.assertEqual(user_secret, recovered_secret)
 
-    # def test_manual(self):
-    #     # (1) Create secret
-    #     secret_sharing = SecretSharing(file_dir)
-    #     secret = Secret(2, 3, 'test')
+    def test_manual(self):
+        # (1) Create secret
+        secret_sharing = SecretSharing(file_dir, 'test')
+        secret = Secret(2, 3, 'test')
 
-    #     pieces = secret_sharing.create(
-    #         secret,
-    #         user_secret,
-    #         False,
-    #     )
+        pieces = secret_sharing.create(
+            secret,
+            user_secret,
+            False,
+            2,
+            None
+        )
 
-    #     self.assertEqual(len(pieces), 3)
-    #     for piece in pieces:
-    #         exists = os.path.isfile(piece.get_piece_path())
-    #         self.assertTrue(exists)
+        self.assertEqual(len(pieces), 3)
+        for piece in pieces:
+            exists = os.path.isfile(piece.get_piece_path())
+            self.assertTrue(exists)
 
-    #     # (2) Recover secret
-    #     recovered_secret = secret_sharing.reconstruct(None)
-    #     self.assertEqual(user_secret, recovered_secret)
+        # (2) Recover secret
+        recovered_secret = secret_sharing.reconstruct(None, False)
+        self.assertEqual(user_secret, recovered_secret)
 
-    # def test_manual_with_images(self):
-    #     # (1) Create secret
-    #     secret_sharing = SecretSharing(file_dir)
-    #     secret = Secret(2, 3, 'test')
+    def test_manual_with_images(self):
+        # (1) Create secret
+        secret_sharing = SecretSharing(file_dir, 'test')
+        secret = Secret(2, 3, 'test')
 
-    #     pieces = secret_sharing.create(
-    #         secret,
-    #         user_secret,
-    #         True,
-    #     )
+        pieces = secret_sharing.create(
+            secret,
+            user_secret,
+            True,
+            2,
+            None
+        )
 
-    #     self.assertEqual(len(pieces), 3)
-    #     for piece in pieces:
-    #         # when using images, the txt file should be deleted
-    #         exists = os.path.isfile(piece.get_piece_path())
-    #         self.assertFalse(exists)
-    #         images = list_files_by_extention(piece.directory, '.jpg')
-    #         images_filtered = filter_images_with_steghide_data(images)
-    #         self.assertEqual(len(images_filtered), 1)
+        self.assertEqual(len(pieces), 3)
+        for piece in pieces:
+            # when using images, the txt file should be deleted
+            exists = os.path.isfile(piece.get_piece_path())
+            self.assertFalse(exists)
+            images = list_files_by_extention(piece.directory, '.jpg')
+            images_filtered = filter_images_with_steghide_data(images)
+            self.assertEqual(len(images_filtered), 1)
 
-    #     # (2) Recover secret
-    #     recovered_secret = secret_sharing.reconstruct(None)
-    #     self.assertEqual(user_secret, recovered_secret)
+        # (2) Recover secret
+        recovered_secret = secret_sharing.reconstruct(None, True)
+        self.assertEqual(user_secret, recovered_secret)
